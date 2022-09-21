@@ -36,12 +36,28 @@ export class AuthService {
                 }
             }
             throw error
-        }
+        };
     } // P2002 es el código de Nest para duplicated field 
 
-    signin() {
-        return {
-            msg: 'I have signed in'
-        }
+    async signin(dto: AuthDto) {
+        // Encontrar el usuario según email
+        const user = await this.prisma.user.findUnique({
+            where: {
+                email: dto.email
+            }
+        });
+
+        // Si el usuario no existe -> throw exception
+        if (!user) throw new ForbiddenException('Credentials incorrect');
+
+        // Comparar password (verify es el método de argon2)
+        const pwMatches = await argon.verify(user.hash, dto.password);
+
+        // Si la password no coincide -> throw exception
+        if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
+
+        // Retornar el usuario
+        delete user.hash;
+        return user;
     }
 }
