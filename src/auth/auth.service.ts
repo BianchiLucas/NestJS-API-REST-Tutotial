@@ -3,10 +3,12 @@ import { PrismaService } from "src/prisma/prisma.service";
 import * as argon from "argon2"
 import { AuthDto } from "./dto";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { JwtService } from "@nestjs/jwt";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class AuthService {
-    constructor(private prisma: PrismaService) {
+    constructor(private prisma: PrismaService, private jwt: JwtService, private config: ConfigService) {
 
     }
 
@@ -37,7 +39,7 @@ export class AuthService {
             }
             throw error
         };
-    } // P2002 es el código de Nest para duplicated field 
+    }; // P2002 es el código de Nest para duplicated field 
 
     async signin(dto: AuthDto) {
         // Encontrar el usuario según email
@@ -56,8 +58,25 @@ export class AuthService {
         // Si la password no coincide -> throw exception
         if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
 
-        // Retornar el usuario
-        delete user.hash;
-        return user;
+        // Retornar el usuario 
+        return this.singToken(user.id, user.email)
+    };
+
+    singToken(userId: number, email: string): Promise<string> {
+
+        // Construir el objeto payload
+        const payload = {
+            sub: userId,
+            email
+        };
+
+        // Definir la variable secreta (variable de entorno)
+        const secret = this.config.get('JWT_SECRET');
+
+        // Retornar el string hasheado según el metodo signAsync de jwt
+        return this.jwt.signAsync(payload, {
+            expiresIn: '15m',
+            secret: secret
+        });
     }
 }
