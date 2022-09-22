@@ -13,4 +13,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             secretOrKey: config.get('JWT_SECRET'),
         })
     }
+
+    // El payload a retornar es un objeto con toda la data
+    validate(payload: any) {
+        return payload;
+    }
 };
+
