@@ -26,10 +26,9 @@ export class AuthService {
                     hash
                 }
             });
-            delete user.hash
 
             // Retornar el usuario guardado (sin el hash)
-            return user;
+            return this.signToken(user.id, user.email);
 
         } catch (error) {
             if (error instanceof PrismaClientKnownRequestError) {
@@ -59,10 +58,10 @@ export class AuthService {
         if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
 
         // Retornar el usuario 
-        return this.singToken(user.id, user.email)
+        return this.signToken(user.id, user.email)
     };
 
-    singToken(userId: number, email: string): Promise<string> {
+    async signToken(userId: number, email: string): Promise<{ access_token: string }> {
 
         // Construir el objeto payload
         const payload = {
@@ -73,10 +72,14 @@ export class AuthService {
         // Definir la variable secreta (variable de entorno)
         const secret = this.config.get('JWT_SECRET');
 
-        // Retornar el string hasheado según el metodo signAsync de jwt
-        return this.jwt.signAsync(payload, {
+        // Retornar el token encoded según el metodo signAsync de jwt
+        const token = await this.jwt.signAsync(payload, {
             expiresIn: '15m',
             secret: secret
         });
+
+        return {
+            access_token: token,
+        }
     }
 }
