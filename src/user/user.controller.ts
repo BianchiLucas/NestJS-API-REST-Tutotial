@@ -1,15 +1,16 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { User } from '@prisma/client';
+import { GetUser } from 'src/auth/decorator';
+import { JwtGuard } from 'src/auth/guard';
+
+@UseGuards(JwtGuard)
 
 @Controller('users')
 export class UserController {
     // Utilizar Guard para proteger (bloquear) las rutas en caso de que no se presente un token válido
-    // 'jwt' es el string por default de la class Strategy de PassportStrategy provisto por Passport (ver jwt.strategy.ts)
-
-    @UseGuards(AuthGuard('jwt')) 
 
     @Get('me')
-    getMe() {
-        return 'User info'
+    getMe(@GetUser() user: User) {
+        return user;
     }
 }
