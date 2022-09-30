@@ -46,20 +46,54 @@ describe('App e2e', () => {
       email: 'ejemplotest@test.com',
       password: '123',
     }
-    
+
     describe('Signup', () => {
+      it('should throw error if email empty', () => {
+        return pactum.spec().post('/auth/signup').withBody({
+          password: dto.password,
+        }).expectStatus(400)
+      });
+      it('should throw error if password is empty', () => {
+        return pactum.spec().post('/auth/signup').withBody({
+          email: dto.email,
+        }).expectStatus(400)
+      });
+      it('should throw if no body provided', () => {
+        return pactum.spec().post('/auth/signup').expectStatus(400)
+      });
       it('should sign up', () => {
         return pactum.spec().post('/auth/signup').withBody(dto).expectStatus(201)
       })
     });
 
     describe('Signin', () => {
-      it.todo('Signin')
+      it('should throw error if email empty', () => {
+        return pactum.spec().post('/auth/signin').withBody({
+          password: dto.password,
+        }).expectStatus(400)
+      });
+      it('should throw error if password is empty', () => {
+        return pactum.spec().post('/auth/signin').withBody({
+          email: dto.email,
+        }).expectStatus(400)
+      });
+      it('should throw if no body provided', () => {
+        return pactum.spec().post('/auth/signin').expectStatus(400)
+      });
+      it('should sign in', () => {
+        return pactum.spec().post('/auth/signin').withBody(dto).expectStatus(200).stores('userAt', 'access_token')
+      })
     });
   });
 
   describe('User', () => {
-    describe('Get me', () => { });
+    describe('Get me', () => {
+      it('should get current user', () => {
+        return pactum.spec().get('/users/me').withHeaders({
+          Authorization: 'Bearer $S{userAt}',
+        }).expectStatus(200)
+      })
+    });
 
     describe('Edit user', () => { });
   });
@@ -71,8 +105,8 @@ describe('App e2e', () => {
 
     describe('Get bookmark by id', () => { });
 
-    describe('Edit bookmark', () => { });
+    describe('Edit bookmark by id', () => { });
 
-    describe('Delete bookmark', () => { });
+    describe('Delete bookmark by id', () => { });
   });
 })
