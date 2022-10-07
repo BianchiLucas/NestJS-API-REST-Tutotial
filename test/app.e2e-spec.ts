@@ -1,8 +1,9 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import * as pactum from 'pactum';
-import { AuthDto } from 'src/auth/dto';
 import { AppModule } from '../src/app.module';
+import { AuthDto } from '../src/auth/dto';
+import { EditUserDto } from '../src/user/dto';
 import { PrismaService } from '../src/prisma/prisma.service';
 
 // Pactum compila todo un módulo y crea un módulo de testing, donde puede realizar requests 
@@ -95,7 +96,17 @@ describe('App e2e', () => {
       })
     });
 
-    describe('Edit user', () => { });
+    describe('Edit user', () => {
+      it('should edit user', () => {
+        const dto: EditUserDto = {
+          firstName: 'Name',
+          email: 'ejemploedit@ejemplo.com'
+        }
+        return pactum.spec().patch('/users').withHeaders({
+          Authorization: 'Bearer $S{userAt}',
+        }).withBody(dto).inspect()
+      })
+    });
   });
 
   describe('Bookmark', () => {
