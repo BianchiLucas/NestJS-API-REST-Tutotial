@@ -104,7 +104,7 @@ describe('App e2e', () => {
         }
         return pactum.spec().patch('/users').withHeaders({
           Authorization: 'Bearer $S{userAt}',
-        }).withBody(dto).inspect()
+        }).withBody(dto).expectStatus(200).expectBodyContains(dto.firstName).expectBodyContains(dto.email)
       })
     });
   });
