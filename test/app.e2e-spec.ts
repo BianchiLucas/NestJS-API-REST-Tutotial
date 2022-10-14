@@ -5,6 +5,7 @@ import { AppModule } from '../src/app.module';
 import { AuthDto } from '../src/auth/dto';
 import { EditUserDto } from '../src/user/dto';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { CreateBookmarkDto } from '../src/bookmark/dto';
 
 // Pactum compila todo un módulo y crea un módulo de testing, donde puede realizar requests 
 // Jest es el main testing framework
@@ -110,9 +111,25 @@ describe('App e2e', () => {
   });
 
   describe('Bookmark', () => {
-    describe('Create bookmark', () => { });
+    describe('Get bookmarks', () => {
+      it('should get all bookmarks', () => {
+        return pactum.spec().get('/bookmarks').withHeaders({
+          Authorization: 'Bearer $S{userAt}'
+        }).expectStatus(200).expectBody([])
+      })
+    });
 
-    describe('Get bookmarks', () => { });
+    describe('Create bookmark', () => {
+      const dto: CreateBookmarkDto = {
+        title: 'First Bookmark',
+        link: 'https://lucas-bianchi.vercel.app/'
+      }
+      it('should create bookmark', () => {
+        return pactum.spec().post('/bookmarks').withHeaders({
+          Authorization: 'Bearer $S{userAt}'
+        }).withBody(dto).expectStatus(201).inspect()
+      })
+    });
 
     describe('Get bookmark by id', () => { });
 
