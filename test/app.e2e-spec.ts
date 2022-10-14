@@ -5,7 +5,7 @@ import { AppModule } from '../src/app.module';
 import { AuthDto } from '../src/auth/dto';
 import { EditUserDto } from '../src/user/dto';
 import { PrismaService } from '../src/prisma/prisma.service';
-import { CreateBookmarkDto } from '../src/bookmark/dto';
+import { CreateBookmarkDto, EditBookmarkDto } from '../src/bookmark/dto';
 
 // Pactum compila todo un módulo y crea un módulo de testing, donde puede realizar requests 
 // Jest es el main testing framework
@@ -111,8 +111,8 @@ describe('App e2e', () => {
   });
 
   describe('Bookmark', () => {
-    describe('Get bookmarks', () => {
-      it('should get all bookmarks', () => {
+    describe('Get empty bookmarks', () => {
+      it('should get bookmarks', () => {
         return pactum.spec().get('/bookmarks').withHeaders({
           Authorization: 'Bearer $S{userAt}'
         }).expectStatus(200).expectBody([])
@@ -127,14 +127,50 @@ describe('App e2e', () => {
       it('should create bookmark', () => {
         return pactum.spec().post('/bookmarks').withHeaders({
           Authorization: 'Bearer $S{userAt}'
-        }).withBody(dto).expectStatus(201).inspect()
+        }).withBody(dto).expectStatus(201).stores('bookmarkId', 'id')
       })
     });
 
-    describe('Get bookmark by id', () => { });
+    describe('Get bookmarks', () => {
+      it('should get all bookmarks', () => {
+        return pactum.spec().get('/bookmarks').withHeaders({
+          Authorization: 'Bearer $S{userAt}'
+        }).expectStatus(200).expectJsonLength(1)
+      })
+    });
 
-    describe('Edit bookmark by id', () => { });
+    describe('Get bookmark by id', () => {
+      it('should get bookmarks by ID', () => {
+        return pactum.spec().get('/bookmarks/{id}').withPathParams('id', '$S{bookmarkId}').withHeaders({
+          Authorization: 'Bearer $S{userAt}'
+        }).expectStatus(200).expectBodyContains('$S{bookmarkId}')
+      })
+    });
 
-    describe('Delete bookmark by id', () => { });
+    describe('Edit bookmark by id', () => {
+      it('should edit bookmark by id', () => {
+        const dto: EditBookmarkDto = {
+          title: 'Edited Title',
+          description: 'Edited description'
+        }
+        return pactum.spec().patch('/bookmarks/{id}').withPathParams('id', '$S{bookmarkId}').withHeaders({
+          Authorization: 'Bearer $S{userAt}'
+        }).withBody(dto).expectStatus(200).expectBodyContains(dto.title).expectBodyContains(dto.description)
+      })
+    });
+
+    describe('Delete bookmark by id', () => {
+      it('should delete bookmark by id', () => {
+        return pactum.spec().delete('/bookmarks/{id}').withPathParams('id', '$S{bookmarkId}').withHeaders({
+          Authorization: 'Bearer $S{userAt}'
+        }).expectStatus(204)
+      })
+
+      it('should get empty bookmarks', () => {
+        return pactum.spec().get('/bookmarks').withHeaders({
+          Authorization: 'Bearer $S{userAt}'
+        }).expectStatus(200).expectJsonLength(0)
+      })
+    });
   });
 })
